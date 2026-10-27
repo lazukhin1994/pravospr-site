@@ -112,7 +112,38 @@ document.querySelectorAll('input[name="client-phone"]').forEach(input => {
   });
 });
 
-form?.addEventListener('submit', event => {
+const FORM_ENDPOINT = 'https://formsubmit.co/ajax/Dron-mmr@mail.ru';
+
+form?.addEventListener('submit', async event => {
   event.preventDefault();
-  form.querySelector('.form-message').textContent = 'Это макет формы. Заявка не отправлена. Для записи позвоните +7 991 750-96-96 или напишите в Telegram.';
+  const message = form.querySelector('.form-message');
+  const submitButton = form.querySelector('button[type="submit"]');
+  const name = form.querySelector('[name="client-name"]')?.value.trim();
+  const phone = form.querySelector('[name="client-phone"]')?.value.trim();
+
+  if (!name || !phone || phone.replace(/\D/g, '').length < 11) {
+    message.textContent = 'Укажите имя и номер телефона.';
+    return;
+  }
+
+  submitButton.disabled = true;
+  message.textContent = 'Отправляем…';
+
+  try {
+    const formData = new FormData(form);
+    formData.set('_subject', 'Заявка с сайта pravospr.ru');
+    const response = await fetch(FORM_ENDPOINT, {
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+      body: formData,
+    });
+    if (!response.ok) throw new Error('bad response');
+    message.textContent = 'Заявка отправлена. Мы свяжемся с вами в ближайшее время.';
+    form.reset();
+    document.querySelectorAll('input[name="client-phone"]').forEach(input => { input.value = '+7 '; });
+  } catch (error) {
+    message.textContent = 'Не получилось отправить форму. Позвоните +7 991 750-96-96 или напишите в Telegram.';
+  } finally {
+    submitButton.disabled = false;
+  }
 });
