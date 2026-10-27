@@ -137,7 +137,11 @@ form?.addEventListener('submit', async event => {
       headers: { Accept: 'application/json' },
       body: formData,
     });
-    if (!response.ok) throw new Error('bad response');
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result || result.success === 'false' || result.success === false) {
+      message.textContent = 'Заявка пока не доходит автоматически. Позвоните +7 991 750-96-96 или напишите в Telegram — мы на связи.';
+      return;
+    }
     message.textContent = 'Заявка отправлена. Мы свяжемся с вами в ближайшее время.';
     form.reset();
     document.querySelectorAll('input[name="client-phone"]').forEach(input => { input.value = '+7 '; });
